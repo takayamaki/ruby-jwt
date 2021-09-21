@@ -162,5 +162,27 @@ RSpec.describe JWT do
         end
       end
     end
+
+    context 'when JWT header alg is none, and no kid' do
+      let(:token){ described_class.encode(token_payload, nil, 'none')}
+
+      it 'raises an exception' do
+        _, header = described_class.decode(token, nil, false)
+        expect { described_class.decode(token, nil, true, { algorithm: header['alg'], jwks: { keys: [jwk.export] } }) }.to raise_error(
+          JWT::IncorrectAlgorithm
+        )
+      end
+    end
+
+    context 'when JWT header has kid, but alg is none' do
+      let(:token){ described_class.encode(token_payload, nil, 'none', { kid: jwk.kid })}
+
+      it 'raises an exception' do
+        _, header = described_class.decode(token, nil, false)
+        expect { described_class.decode(token, nil, true, { algorithm: header['alg'], jwks: { keys: [jwk.export] } }) }.to raise_error(
+          JWT::IncorrectAlgorithm
+        )
+      end
+    end
   end
 end
